@@ -4355,7 +4355,15 @@ function _Browser_load(url)
 		}
 	}));
 }
-var $author$project$Main$init = {textarea: ''};
+var $author$project$Main$CountSpec = F3(
+	function (limit, countSpace, countNewline) {
+		return {countNewline: countNewline, countSpace: countSpace, limit: limit};
+	});
+var $elm$core$Basics$True = {$: 'True'};
+var $author$project$Main$init = {
+	countSpec: A3($author$project$Main$CountSpec, 400, true, true),
+	textarea: ''
+};
 var $elm$core$Basics$EQ = {$: 'EQ'};
 var $elm$core$Basics$GT = {$: 'GT'};
 var $elm$core$Basics$LT = {$: 'LT'};
@@ -4823,7 +4831,6 @@ var $elm$core$Array$initialize = F2(
 			return A5($elm$core$Array$initializeHelp, fn, initialFromIndex, len, _List_Nil, tail);
 		}
 	});
-var $elm$core$Basics$True = {$: 'True'};
 var $elm$core$Result$isOk = function (result) {
 	if (result.$ === 'Ok') {
 		return true;
@@ -5166,24 +5173,64 @@ var $elm$browser$Browser$sandbox = function (impl) {
 			view: impl.view
 		});
 };
+var $elm$core$Basics$not = _Basics_not;
 var $author$project$Main$update = F2(
 	function (msg, model) {
-		if (msg.$ === 'Changed') {
-			var textarea = msg.a;
-			return _Utils_update(
-				model,
-				{textarea: textarea});
-		} else {
-			return _Utils_update(
-				model,
-				{textarea: ''});
+		switch (msg.$) {
+			case 'Changed':
+				var textarea = msg.a;
+				return _Utils_update(
+					model,
+					{textarea: textarea});
+			case 'ClickedClear':
+				return _Utils_update(
+					model,
+					{textarea: ''});
+			case 'ToggleNewLine':
+				var countSpec = model.countSpec;
+				var newCountSpec = _Utils_update(
+					countSpec,
+					{countNewline: !countSpec.countNewline});
+				return _Utils_update(
+					model,
+					{countSpec: newCountSpec});
+			case 'ToggleSpace':
+				var countSpec = model.countSpec;
+				var newCountSpec = _Utils_update(
+					countSpec,
+					{countSpace: !countSpec.countSpace});
+				return _Utils_update(
+					model,
+					{countSpec: newCountSpec});
+			default:
+				var str = msg.a;
+				var _v1 = $elm$core$String$toInt(str);
+				if (_v1.$ === 'Just') {
+					var limit = _v1.a;
+					var countSpec = model.countSpec;
+					var newCountSpec = _Utils_update(
+						countSpec,
+						{limit: limit});
+					return _Utils_update(
+						model,
+						{countSpec: newCountSpec});
+				} else {
+					return model;
+				}
 		}
 	});
 var $author$project$Main$Changed = function (a) {
 	return {$: 'Changed', a: a};
 };
 var $author$project$Main$ClickedClear = {$: 'ClickedClear'};
+var $author$project$Main$ToggleNewLine = {$: 'ToggleNewLine'};
+var $author$project$Main$ToggleSpace = {$: 'ToggleSpace'};
 var $elm$html$Html$button = _VirtualDom_node('button');
+var $elm$virtual_dom$VirtualDom$text = _VirtualDom_text;
+var $elm$html$Html$text = $elm$virtual_dom$VirtualDom$text;
+var $author$project$Main$checkMark = function (pred) {
+	return pred ? $elm$html$Html$text('✓') : $elm$html$Html$text('');
+};
 var $elm$json$Json$Encode$string = _Json_wrap;
 var $elm$html$Html$Attributes$stringProperty = F2(
 	function (key, string) {
@@ -5193,30 +5240,15 @@ var $elm$html$Html$Attributes$stringProperty = F2(
 			$elm$json$Json$Encode$string(string));
 	});
 var $elm$html$Html$Attributes$class = $elm$html$Html$Attributes$stringProperty('className');
-var $elm$html$Html$div = _VirtualDom_node('div');
+var $author$project$Main$ChangedLimit = function (a) {
+	return {$: 'ChangedLimit', a: a};
+};
 var $elm$virtual_dom$VirtualDom$style = _VirtualDom_style;
 var $elm$html$Html$Attributes$style = $elm$virtual_dom$VirtualDom$style;
 var $author$project$Main$colorRedGT = F2(
 	function (limit, len) {
 		return (_Utils_cmp(len, limit) > 0) ? A2($elm$html$Html$Attributes$style, 'color', '#C2185B') : A2($elm$html$Html$Attributes$style, 'color', 'inherit');
 	});
-var $elm$html$Html$li = _VirtualDom_node('li');
-var $elm$virtual_dom$VirtualDom$text = _VirtualDom_text;
-var $elm$html$Html$text = $elm$virtual_dom$VirtualDom$text;
-var $author$project$Main$li140 = function (model) {
-	var len = $elm$core$String$length(model.textarea);
-	return A2(
-		$elm$html$Html$li,
-		_List_fromArray(
-			[
-				A2($author$project$Main$colorRedGT, 140, len)
-			]),
-		_List_fromArray(
-			[
-				$elm$html$Html$text(
-				'140字小説用(空白・改行を数える): ' + ($elm$core$String$fromInt(len) + '/140'))
-			]));
-};
 var $elm$core$String$replace = F3(
 	function (before, after, string) {
 		return A2(
@@ -5224,63 +5256,35 @@ var $elm$core$String$replace = F3(
 			after,
 			A2($elm$core$String$split, before, string));
 	});
-var $author$project$Main$liOthers = function (model) {
-	var len = $elm$core$String$length(
-		A3(
-			$elm$core$String$replace,
-			'\n',
-			'',
-			A3(
-				$elm$core$String$replace,
-				'　',
-				'',
-				A3($elm$core$String$replace, ' ', '', model.textarea))));
-	return A2(
-		$elm$html$Html$li,
-		_List_Nil,
-		_List_fromArray(
-			[
-				$elm$html$Html$text(
-				'その他(空白・改行を数えない):' + $elm$core$String$fromInt(len))
-			]));
-};
-var $author$project$Main$liSSG = function (model) {
-	var len = $elm$core$String$length(model.textarea);
-	return A2(
-		$elm$html$Html$li,
-		_List_fromArray(
-			[
-				A2($author$project$Main$colorRedGT, 400, len)
-			]),
-		_List_fromArray(
-			[
-				$elm$html$Html$text(
-				'SSG用(空白・改行を数える): ' + ($elm$core$String$fromInt(len) + '/400'))
-			]));
-};
-var $elm$virtual_dom$VirtualDom$Normal = function (a) {
-	return {$: 'Normal', a: a};
-};
-var $elm$virtual_dom$VirtualDom$on = _VirtualDom_on;
-var $elm$html$Html$Events$on = F2(
-	function (event, decoder) {
-		return A2(
-			$elm$virtual_dom$VirtualDom$on,
-			event,
-			$elm$virtual_dom$VirtualDom$Normal(decoder));
+var $author$project$Main$removeNewline = F2(
+	function (spec, text) {
+		return spec.countNewline ? text : A3($elm$core$String$replace, '\n', '', text);
 	});
-var $elm$html$Html$Events$onClick = function (msg) {
-	return A2(
-		$elm$html$Html$Events$on,
-		'click',
-		$elm$json$Json$Decode$succeed(msg));
-};
+var $author$project$Main$removeSpace = F2(
+	function (spec, text) {
+		return spec.countSpace ? text : A3(
+			$elm$core$String$replace,
+			'　',
+			'',
+			A3($elm$core$String$replace, ' ', '', text));
+	});
+var $author$project$Main$count = F2(
+	function (spec, text) {
+		return $elm$core$String$length(
+			A2(
+				$author$project$Main$removeNewline,
+				spec,
+				A2($author$project$Main$removeSpace, spec, text)));
+	});
+var $elm$html$Html$div = _VirtualDom_node('div');
+var $elm$html$Html$input = _VirtualDom_node('input');
 var $elm$html$Html$Events$alwaysStop = function (x) {
 	return _Utils_Tuple2(x, true);
 };
 var $elm$virtual_dom$VirtualDom$MayStopPropagation = function (a) {
 	return {$: 'MayStopPropagation', a: a};
 };
+var $elm$virtual_dom$VirtualDom$on = _VirtualDom_on;
 var $elm$html$Html$Events$stopPropagationOn = F2(
 	function (event, decoder) {
 		return A2(
@@ -5308,9 +5312,57 @@ var $elm$html$Html$Events$onInput = function (tagger) {
 			$elm$html$Html$Events$alwaysStop,
 			A2($elm$json$Json$Decode$map, tagger, $elm$html$Html$Events$targetValue)));
 };
-var $elm$html$Html$textarea = _VirtualDom_node('textarea');
-var $elm$html$Html$ul = _VirtualDom_node('ul');
+var $elm$html$Html$Attributes$type_ = $elm$html$Html$Attributes$stringProperty('type');
 var $elm$html$Html$Attributes$value = $elm$html$Html$Attributes$stringProperty('value');
+var $author$project$Main$counter = function (model) {
+	var len = A2($author$project$Main$count, model.countSpec, model.textarea);
+	return A2(
+		$elm$html$Html$div,
+		_List_fromArray(
+			[
+				A2($author$project$Main$colorRedGT, model.countSpec.limit, len),
+				$elm$html$Html$Attributes$class('display-count')
+			]),
+		_List_fromArray(
+			[
+				A2(
+				$elm$html$Html$div,
+				_List_Nil,
+				_List_fromArray(
+					[
+						$elm$html$Html$text(
+						'現在の文字数' + (': ' + ($elm$core$String$fromInt(len) + '/')))
+					])),
+				A2(
+				$elm$html$Html$input,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$class('count-limit'),
+						$elm$html$Html$Events$onInput($author$project$Main$ChangedLimit),
+						$elm$html$Html$Attributes$type_('input'),
+						$elm$html$Html$Attributes$value(
+						$elm$core$String$fromInt(model.countSpec.limit))
+					]),
+				_List_Nil)
+			]));
+};
+var $elm$virtual_dom$VirtualDom$Normal = function (a) {
+	return {$: 'Normal', a: a};
+};
+var $elm$html$Html$Events$on = F2(
+	function (event, decoder) {
+		return A2(
+			$elm$virtual_dom$VirtualDom$on,
+			event,
+			$elm$virtual_dom$VirtualDom$Normal(decoder));
+	});
+var $elm$html$Html$Events$onClick = function (msg) {
+	return A2(
+		$elm$html$Html$Events$on,
+		'click',
+		$elm$json$Json$Decode$succeed(msg));
+};
+var $elm$html$Html$textarea = _VirtualDom_node('textarea');
 var $author$project$Main$view = function (model) {
 	return A2(
 		$elm$html$Html$div,
@@ -5328,14 +5380,57 @@ var $author$project$Main$view = function (model) {
 						$elm$html$Html$Attributes$value(model.textarea)
 					]),
 				_List_Nil),
+				$author$project$Main$counter(model),
 				A2(
-				$elm$html$Html$ul,
-				_List_Nil,
+				$elm$html$Html$div,
 				_List_fromArray(
 					[
-						$author$project$Main$liSSG(model),
-						$author$project$Main$li140(model),
-						$author$project$Main$liOthers(model)
+						$elm$html$Html$Attributes$class('count-option')
+					]),
+				_List_fromArray(
+					[
+						A2(
+						$elm$html$Html$div,
+						_List_fromArray(
+							[
+								$elm$html$Html$Attributes$class('count-option-newline'),
+								$elm$html$Html$Events$onClick($author$project$Main$ToggleNewLine)
+							]),
+						_List_fromArray(
+							[
+								A2(
+								$elm$html$Html$div,
+								_List_fromArray(
+									[
+										$elm$html$Html$Attributes$class('check-mark')
+									]),
+								_List_fromArray(
+									[
+										$author$project$Main$checkMark(model.countSpec.countNewline)
+									])),
+								$elm$html$Html$text('改行含む')
+							])),
+						A2(
+						$elm$html$Html$div,
+						_List_fromArray(
+							[
+								$elm$html$Html$Attributes$class('count-option-space'),
+								$elm$html$Html$Events$onClick($author$project$Main$ToggleSpace)
+							]),
+						_List_fromArray(
+							[
+								A2(
+								$elm$html$Html$div,
+								_List_fromArray(
+									[
+										$elm$html$Html$Attributes$class('check-mark')
+									]),
+								_List_fromArray(
+									[
+										$author$project$Main$checkMark(model.countSpec.countSpace)
+									])),
+								$elm$html$Html$text('空白含む')
+							]))
 					])),
 				A2(
 				$elm$html$Html$button,

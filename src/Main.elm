@@ -49,18 +49,23 @@ main = Browser.sandbox
 
 type alias Model =
   { textarea: String
+  , countSpec: CountSpec
   }
 
 
 init : Model
 init = 
   { textarea = ""
+  , countSpec = CountSpec 400 True True
   }
 
 
 type Msg
   = Changed String
   | ClickedClear
+  | ChangedLimit String
+  | ToggleNewLine
+  | ToggleSpace
 
 
 update : Msg -> Model -> Model
@@ -70,70 +75,93 @@ update msg model =
 
     ClickedClear -> { model | textarea = "" }
 
+    ToggleNewLine -> 
+        let countSpec = model.countSpec
+            newCountSpec =
+                { countSpec | countNewline = Basics.not countSpec.countNewline }
+        in
+        { model | countSpec = newCountSpec }
+
+    ToggleSpace -> 
+        let countSpec = model.countSpec
+            newCountSpec =
+                { countSpec | countSpace = Basics.not countSpec.countSpace }
+        in
+        { model | countSpec = newCountSpec }
+
+    ChangedLimit str ->
+        case String.toInt str of
+            Just limit ->
+                let countSpec = model.countSpec
+                    newCountSpec =
+                        { countSpec | limit = limit }
+                in
+                { model | countSpec = newCountSpec }
+
+            Nothing ->
+                model
+
 
 view : Model -> Html Msg
 view model =
     div [ class "wrapper" ]
     [ textarea [ onInput Changed, value model.textarea ] [ ]
-    , ul []
-      [ liSSG model
-      , li140 model
-      , liTokyoNP model
-      , liOthers model
+    , counter model
+    , div [ class "count-option" ]
+      [ div
+          [ class "count-option-newline"
+          , onClick ToggleNewLine
+          ]
+          [ div
+              [ class "check-mark" ]
+              [ checkMark model.countSpec.countNewline ]
+          , text "改行含む"
+          ]
+      , div
+          [ class "count-option-space"
+          , onClick ToggleSpace
+          ]
+          [ div
+              [ class "check-mark" ]
+              [ checkMark model.countSpec.countSpace ]
+          , text "空白含む"
+          ]
       ]
     , button [ class "clear-button", onClick ClickedClear ] [ text "Clear" ]
     ]
 
-liSSG : Model -> Html Msg
-liSSG model =
-  let len = count (CountSpec 400 True True) model.textarea
-  in
-    li
-    [ colorRedGT 400 len ]
-    [ text
-        ("SSG用(空白・改行を数える): "
-        ++ (String.fromInt len)
-        ++ "/400"
-        )
-    ]
 
-li140 : Model -> Html Msg
-li140 model =
-  let len = count (CountSpec 140 True True) model.textarea
-  in
-    li
-    [ colorRedGT 140 len ]
-    [ text
-        ("140字小説用(空白・改行を数える): "
-        ++ (String.fromInt len)
-        ++ "/140"
-        )
-    ]
+checkMark pred =
+    if pred
+        then text "✓"
+        else text ""
 
-liTokyoNP : Model -> Html Msg
-liTokyoNP model =
-  let len = count (CountSpec 300 True False) model.textarea
-  in
-    li
-    [ colorRedGT 300 len ]
-    [ text
-        ("東京新聞用(改行のみ数えない): "
-        ++ (String.fromInt len)
-        ++ "/300"
-        )
-    ]
+           
 
-liOthers : Model -> Html Msg
-liOthers model =
-  let len = count (CountSpec 300 False False) model.textarea
-  in
-    li
-    []
-    [ text
-        ("その他(空白・改行を数えない):"
-        ++ (String.fromInt len)
-        )
-    ]
+
+counter : Model -> Html Msg
+counter model =
+    let len = count model.countSpec model.textarea
+    in
+      div
+        [ colorRedGT model.countSpec.limit len
+        , class "display-count"
+        ]
+        [ div []
+            [ text ("現在の文字数"
+                     ++ ": "
+                     ++ (String.fromInt len)
+                     ++ "/")
+            ]
+        , input
+            [ class "count-limit"
+            , onInput ChangedLimit
+            , type_ "input"
+            , value (String.fromInt model.countSpec.limit)
+            ]
+            []
+        ]
+
 
 colorRedGT : Int -> Int -> (Attribute Msg)
 colorRedGT limit len =
