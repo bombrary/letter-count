@@ -1,0 +1,50 @@
+html {
+  font-family: 'M PLUS Rounded 1c', sans-serif;
+  font-size: 16px;
+  color: #512F3B;
+}
+h1 {
+  text-align: center;
+}
+body {
+  background-color: white;
+}
+.wrapper {
+  padding: 50px 20px;
+  margin: 0 auto;
+  width: 600px;
+  background-color: rgba(255,255,255,0.5);
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+}
+
+textarea {
+  width: 500px;
+  height: 300px;
+  font-size: 20px;
+  border: 3px dotted #512F3B;
+  padding: 20px;
+  border-radius: 10px;
+  resize: none;
+  outline: none;
+  background-color: white;
+}
+
+ul {
+  padding: 0;
+  list-style-type: none;
+}
+
+
+.clear-button {
+  font-size: 20px;
+  border: none;
+  appearance: none;
+  background-color: #512F3B;
+  color: white;
+  border-radius: 4px;
+  padding: 5px 10px;
+}
