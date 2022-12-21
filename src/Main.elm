@@ -5,23 +5,63 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 
+
+type alias CountSpec =
+    { limit: Int
+    , countSpace: Bool
+    , countNewline: Bool
+    }
+
+
+removeSpace : CountSpec -> String -> String
+removeSpace spec text =
+    if spec.countSpace then
+        text
+    else
+        text
+        |> String.replace " " ""
+        |> String.replace "　" ""
+
+
+removeNewline : CountSpec -> String -> String
+removeNewline spec text =
+    if spec.countNewline then
+        text
+    else
+        text
+        |> String.replace "\n" ""
+
+
+count : CountSpec -> String -> Int
+count spec text =
+    text
+    |> removeSpace spec
+    |> removeNewline spec
+    |> String.length
+
+
 main = Browser.sandbox 
   { init = init
   , update = update
   , view = view
   }
+
+
 type alias Model =
   { textarea: String
   }
+
 
 init : Model
 init = 
   { textarea = ""
   }
 
+
 type Msg
   = Changed String
   | ClickedClear
+
 
 update : Msg -> Model -> Model
 update msg model =
@@ -30,6 +70,7 @@ update msg model =
 
     ClickedClear -> { model | textarea = "" }
 
+
 view : Model -> Html Msg
 view model =
     div [ class "wrapper" ]
@@ -37,6 +78,7 @@ view model =
     , ul []
       [ liSSG model
       , li140 model
+      , liTokyoNP model
       , liOthers model
       ]
     , button [ class "clear-button", onClick ClickedClear ] [ text "Clear" ]
@@ -44,8 +86,7 @@ view model =
 
 liSSG : Model -> Html Msg
 liSSG model =
-  let len = model.textarea
-                |> String.length
+  let len = count (CountSpec 400 True True) model.textarea
   in
     li
     [ colorRedGT 400 len ]
@@ -58,8 +99,7 @@ liSSG model =
 
 li140 : Model -> Html Msg
 li140 model =
-  let len = model.textarea
-                |> String.length
+  let len = count (CountSpec 140 True True) model.textarea
   in
     li
     [ colorRedGT 140 len ]
@@ -72,9 +112,7 @@ li140 model =
 
 liTokyoNP : Model -> Html Msg
 liTokyoNP model =
-  let len = model.textarea
-                |> String.replace "\n" ""
-                |> String.length
+  let len = count (CountSpec 300 True False) model.textarea
   in
     li
     [ colorRedGT 300 len ]
@@ -87,11 +125,7 @@ liTokyoNP model =
 
 liOthers : Model -> Html Msg
 liOthers model =
-  let len = model.textarea
-                |> String.replace " " ""
-                |> String.replace "　" ""
-                |> String.replace "\n" ""
-                |> String.length
+  let len = count (CountSpec 300 False False) model.textarea
   in
     li
     []
